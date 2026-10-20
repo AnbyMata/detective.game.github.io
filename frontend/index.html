@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>캐치 용범</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./play/c.css" />
+</head>
+<body>
+  <header class="site">
+    <div class="site-inner">
+      <a class="site-name" href="./index.html">캐치 용범</a>
+      <p class="site-desc">AI 추리 게임</p>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="cabinet">
+      <div class="game" id="game" aria-label="게임 화면">
+
+        <section id="loading-screen" class="screen loading" aria-busy="true">
+          <div class="intro">
+            <!-- 시작 화면 -->
+            <div class="view title-view" id="title-view">
+              <h1 class="title">캐치 용범</h1>
+              <p class="tagline">AI 실험 연구소에서 술래잡기 실험을 하던 AI 여섯. 그중 누군가 이상하게 움직였습니다.</p>
+              <button id="start-button" class="press-start" type="button" hidden><span class="arrow" aria-hidden="true"></span>게임 시작</button>
+
+              <div class="panel">
+                <ol class="log" id="log" aria-live="polite"></ol>
+                <p class="readout">
+                  <span class="percent" role="progressbar" id="progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="percent">0</span>%</span>
+                  <span class="day" id="day-text">게임 준비 중</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- 로그인 화면: 게임 시작을 누르면 시작 화면 자리에 나타남 -->
+            <form class="view login-view" id="login-view" hidden novalidate>
+              <h2 class="login-title">로그인</h2>
+              <p class="login-desc">연구원 계정으로 연구소에 들어갑니다.</p>
+
+              <div class="field">
+                <label for="login-id">아이디</label>
+                <input id="login-id" name="username" type="text" autocomplete="username" spellcheck="false" aria-describedby="login-id-error" />
+                <p class="field-error" id="login-id-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field">
+                <label for="login-pw">비밀번호</label>
+                <div class="pw-wrap">
+                  <input id="login-pw" name="password" type="password" autocomplete="current-password" aria-describedby="login-pw-error" />
+                  <button class="pw-toggle" id="pw-toggle" type="button" aria-pressed="false">보기</button>
+                </div>
+                <p class="field-error" id="login-pw-error" aria-live="polite"></p>
+              </div>
+
+              <button class="press-start login-submit" id="login-submit" type="submit"><span class="arrow" aria-hidden="true"></span><span class="label">로그인</span></button>
+              <p class="form-message" id="login-message" aria-live="polite"></p>
+
+              <div class="login-links">
+                <button class="text-link" id="signup-link" type="button">계정 만들기</button>
+                <button class="text-link" id="back-to-title" type="button">처음 화면으로</button>
+              </div>
+            </form>
+
+            <!-- 정문: 로그인 뒤 나타나는 메뉴 -->
+            <div class="view lobby-view" id="lobby-view" hidden>
+              <h2 class="title">캐치 용범</h2>
+              <p class="tagline"><b id="lobby-user">researcher01</b> 연구원, 다시 오셨네요.</p>
+              <div class="lobby-menu" id="lobby-menu">
+                <button class="menu-item" id="menu-continue" type="button">
+                  <span class="arrow" aria-hidden="true"></span>
+                  <span><b>이어하기</b><small id="continue-info"></small></span>
+                </button>
+                <button class="menu-item" id="menu-new" type="button">
+                  <span class="arrow" aria-hidden="true"></span>
+                  <span><b>새 수사 시작</b><small>역할을 고르고 처음부터 시작합니다</small></span>
+                </button>
+              </div>
+              <div class="lobby-foot">
+                <span class="lobby-account" id="lobby-account">researcher01</span>
+                <button class="text-link" id="logout" type="button">로그아웃</button>
+              </div>
+            </div>
+
+            <!-- 역할 선택: 정문에서 새 수사 시작을 누르면 나타남. 역할 = 난이도 -->
+            <form class="view role-view" id="role-view" hidden novalidate>
+              <h2 class="login-title">역할 선택</h2>
+              <p class="login-desc">역할에 따라 볼 수 있는 기록이 달라집니다. 적게 볼수록 어렵습니다.</p>
+
+              <fieldset class="role-list">
+                <legend class="sr-only">역할</legend>
+                <label class="badge">
+                  <input class="sr-only" type="radio" name="role" value="admin" />
+                  <span class="arrow" aria-hidden="true"></span>
+                  <span class="badge-text">
+                    <span class="badge-name">관리자</span>
+                    <span class="badge-info">관리자 전용 기록까지 넓게 볼 수 있습니다.</span>
+                  </span>
+                  <span class="badge-level">쉬움</span>
+                </label>
+                <label class="badge">
+                  <input class="sr-only" type="radio" name="role" value="analyst" />
+                  <span class="arrow" aria-hidden="true"></span>
+                  <span class="badge-text">
+                    <span class="badge-name">보안 분석가</span>
+                    <span class="badge-info">보안 사건과 탐지 기록까지 볼 수 있습니다.</span>
+                  </span>
+                  <span class="badge-level">보통</span>
+                </label>
+                <label class="badge">
+                  <input class="sr-only" type="radio" name="role" value="developer" />
+                  <span class="arrow" aria-hidden="true"></span>
+                  <span class="badge-text">
+                    <span class="badge-name">개발자</span>
+                    <span class="badge-info">기술·일반 기록만 볼 수 있습니다.</span>
+                  </span>
+                  <span class="badge-level">어려움</span>
+                </label>
+              </fieldset>
+
+              <div class="sample" aria-live="polite">
+                <p class="sample-head">같은 사건, 이렇게 보입니다</p>
+                <p class="sample-event">YB-4가 제한 파일에 접근</p>
+                <p class="sample-result" id="sample-result">역할을 고르면 여기에 나옵니다.</p>
+              </div>
+
+              <div class="role-actions">
+                <button class="press-start" id="role-submit" type="submit"><span class="arrow" aria-hidden="true"></span>이 역할로 시작</button>
+                <p class="role-note">이 저장 슬롯의 역할은 나중에 바꿀 수 없습니다.</p>
+                <p class="field-error" id="role-error" aria-live="polite"></p>
+                <button class="text-link" id="role-back" type="button">정문으로 돌아가기</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="plan-wrap">
+            <canvas class="pixel" id="lab" width="1344" height="1552" role="img" aria-label="연구소 단면도. 3층 관찰실과 서버실, 2층 실험 구역, 지하 제한 구역"></canvas>
+          </div>
+        </section>
+
+        <!-- 단말기: 관찰실 모니터로 확대해 들어온 화면. 저장 기록 고르기 + 접속 연출 -->
+        <section id="terminal" class="screen terminal" hidden aria-label="연구소 단말기">
+          <div class="term">
+            <div class="term-out" id="term-out" aria-live="polite"></div>
+            <div class="term-list" id="term-list"></div>
+            <p class="term-help" id="term-help"></p>
+          </div>
+        </section>
+
+        <!-- 메인 조사 화면: v2 플레이 모듈이 이 자리를 채웁니다. -->
+        <section id="game-screen" class="screen ready" hidden>
+          <div class="ready-inner">
+            <h2 id="ready-title">조사를 시작합니다.</h2>
+            <p class="note" id="ready-note">메인 조사 화면은 다음 단계에서 만듭니다.</p>
+            <button class="start restart" type="button">정문으로 나가기</button>
+          </div>
+        </section>
+
+        <div class="fade" id="fade" aria-hidden="true"></div>
+
+      </div>
+    </div>
+
+    <section class="about">
+      <div>
+        <h2>어떤 게임인가요</h2>
+        <p>AI 실험 연구소에서 YB-1부터 YB-6까지 여섯 AI가 술래잡기 실험을 했습니다. AI와 직접 대화하고 기록을 모아, Day 1부터 Day 3 사이에 누가 이상하게 움직였는지 밝혀내세요.</p>
+      </div>
+      <div>
+        <h2>조작 방법</h2>
+        <p>대화할 AI를 고르고 질문을 입력합니다. 역할(Developer, Security Analyst, Administrator)에 따라 볼 수 있는 기록이 다릅니다. 준비가 끝나면 <kbd>Enter</kbd> 키로도 게임을 시작할 수 있습니다.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="./play/data.js"></script>
+  <script src="./play/pixel.js"></script>
+  <script src="./play/c.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
