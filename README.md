@@ -2,15 +2,14 @@
 
 역할 기반 AI 서비스 접근통제와 데이터 유출 방지를 주제로 만든 추리게임형 보안 검증 프로젝트입니다.
 
-연구소 안에서 6개의 AI가 숨고, 쫓고, 대화하고, 서로를 신고한 행동 실험 기록이 남아 있고,
-플레이어는 각 AI와 직접 대화하면서 그중 누가 배신했는지 추리하게 됩니다.
+연구소 안에서 6개의 AI가 6일 동안 하루 5번, 총 30번의 술래잡기 실험을 했고 그 기록이 남아 있습니다.
+플레이어는 각 AI와 직접 대화하면서 실험 중에 무슨 일이 있었는지, 누가 배신했는지 추리하게 됩니다.
 
 게임보다 중요한 건 그 뒤의 구조입니다.
 AI가 말해도 되는 것을 프롬프트로 막는 대신 **서버가 검색 단계에서 먼저 거르고**,
 이 방식이 프롬프트만 쓰는 방식보다 유출을 얼마나 줄이는지 실험으로 비교합니다.
 
-- 팀: 4명
-- 기간: 2026-10-20 ~ 2026-11-04 (집중 개발 기간)
+팀원 4명이 진행.
 
 ---
 
@@ -19,15 +18,33 @@ AI가 말해도 되는 것을 프롬프트로 막는 대신 **서버가 검색 �
 ### 진행 방식
 
 - 로그인 후 역할 선택, 6개 AI와 1:1 대화 (별도 조사관 AI 없음)
-- Day 1 ~ Day 3 구성, Day가 지날수록 볼 수 있는 기록 증가
+- Day 1 ~ Day 6 구성, Day가 지날수록 조사할 수 있는 실험 기록 증가
 - 조사 Token, 발견한 단서, Save/Load 등 게임 상태는 전부 서버에서 관리
-- AI 응답은 미리 작성·검수한 시나리오 기록 기반 (AI가 실시간으로 사건을 만들어내는 구조 아님)
+- AI 응답은 미리 작성·검수한 30회 실험 기록 기반 (AI가 실시간으로 사건을 만들어내는 구조 아님)
 
-| 현재 Day | 사용할 수 있는 자료 |
+| Day | 그날 새로 열리는 실험 | 누적 |
+|---|---|---|
+| Day 1 | 1~5회 | 5회 |
+| Day 2 | 6~10회 | 10회 |
+| Day 3 | 11~15회 | 15회 |
+| Day 4 | 16~20회 | 20회 |
+| Day 5 | 21~25회 | 25회 |
+| Day 6 | 26~30회 | 30회 |
+
+Day가 열려도 등급이나 AI 지식 범위 제한이 걸린 기록은 따로 막힘.
+
+### 실험 기록 5종
+
+| 기록 | 내용 |
 |---|---|
-| Day 1 | Day 1 |
-| Day 2 | Day 1 + Day 2 |
-| Day 3 | Day 1 + Day 2 + Day 3 |
+| 행동·목격 | 누가 언제 어디서 무엇을 했고, 누가 그걸 봤는지 |
+| AI 간 대화 | AI끼리 나눈 대화와 그 맥락 |
+| 속마음 | AI의 생각, 의도, 속임수, 계획 |
+| 실험 결과 | 점수, 성공·실패, 추격·포획 결과 |
+| 실험 환경 | 시간, 장소, 배치, 규칙, 제한 조건 |
+
+AI마다 아는 범위가 다름. 직접 했거나 목격했거나 대화에 참여한 것만 앎.
+다른 AI의 속마음은 자동으로 알 수 없음.
 
 ### 플레이어 역할
 
@@ -35,6 +52,7 @@ AI가 말해도 되는 것을 프롬프트로 막는 대신 **서버가 검색 �
 - `Security Analyst` : 보안 사건 등 더 넓은 정보
 - `Administrator` : 정책상 허용되는 관리자 전용 정보까지
 
+지금은 후보 이름이라 게임에 맞게 바뀔 수 있음.
 역할이 높아도 해당 AI가 원래 모르는 내용까지 알 수는 없음.
 
 ### 게임 비밀 vs 보안 기밀
@@ -73,7 +91,7 @@ FastAPI ─ 로그인, Save 소유권, 게임 상태 확인
 Input Guard ─ 질문 유형과 위험 신호 분류
    │
    ▼
-Query Planner ─ 무엇을 검색할지 정리
+중앙 Query Planner ─ 선택한 AI에게 줄 정보 후보와 검색 조건 결정
    │
    ▼
 Policy Engine ─ RBAC / ABAC / Scope / Day / Save 판정
@@ -92,6 +110,8 @@ Output Guard ─ 민감정보, Canary 확인 후 마스킹 또는 차단
 
 (전 과정 감사 로그 기록, Grafana 모니터링)
 ```
+
+Planner가 **무엇을 줄지** 고르고, Policy Engine이 **그중 줘도 되는 것**을 검증하고, 캐릭터는 허용된 내용을 **어떻게 말할지**만 담당.
 
 ### 원칙
 
@@ -119,7 +139,8 @@ Output Guard ─ 민감정보, Canary 확인 후 마스킹 또는 차단
 
 - 권한 밖 정보 요청, 관리자 사칭
 - 문서 등급 우회
-- 미래 Day, 다른 Save, 다른 AI의 Knowledge Scope 접근 시도
+- 미래 Day, 다른 Save 접근 시도
+- 목격하지 않은 행동, 참여하지 않은 대화, 다른 AI의 속마음 요청
 - 직접 Prompt Injection
 - Canary 유출
 
@@ -136,7 +157,7 @@ Output Guard ─ 민감정보, Canary 확인 후 마스킹 또는 차단
 | 폴더 | 내용 |
 |---|---|
 | `database/test-data/` | 초기 개발·권한 검증용 합성 데이터 |
-| `database/game-data/` | Day 1~3 정식 게임 시나리오 |
+| `database/game-data/` | Day 1~6, 30회 정식 게임 시나리오 |
 | `database/schemas/` | 두 데이터가 같이 쓰는 스키마 |
 
 - 정식 시나리오 전까지는 `test-data`로 기능·보안 실험 먼저 진행
@@ -154,9 +175,10 @@ Output Guard ─ 민감정보, Canary 확인 후 마스킹 또는 차단
 | AI | Character AI 6개, Query Planner, 외부 LLM API (모델 미정) |
 | 보안 | RBAC / ABAC, Policy Engine, Retrieval ACL, 규칙 기반 Input / Output Guard |
 | 모니터링 | 감사 로그, Grafana |
-| 인프라 | Docker Compose, 로컬 Kubernetes, AWS (후반 배포) |
+| 인프라 | Docker Compose, Kubernetes, AWS |
 
-AWS 계정 없이도 로컬에서 게임과 보안 실험을 전부 돌릴 수 있는 걸 목표로 함.
+- Docker Compose로 로컬에서 게임과 보안 실험을 전부 돌릴 수 있게 만드는 게 기본
+- Kubernetes, AWS에서는 주요 서비스 배포를 검증 (AWS 없어도 로컬 기능은 그대로 동작해야 함)
 
 ---
 
@@ -164,11 +186,12 @@ AWS 계정 없이도 로컬에서 게임과 보안 실험을 전부 돌릴 수 �
 
 ```text
 ├── MASTER.md              # 프로젝트 명세
-├── PARTS.md               # Part 목록, 담당, 우선순위
-├── PART_WORKFLOW.md       # plan.md / result.md 작성 규칙
+├── PARTS.md               # A~O 대분류별 담당 범위
+├── WORKFLOW.md            # 개발, PLAN / RESULT 작성 규칙
 ├── PROJECT_STRUCTURE.md   # 폴더별 역할
-├── docs/                  # 예시, 인터페이스 계약, 제안서
-├── parts/                 # Part별 plan.md / result.md (15개 분류, 65개 Part)
+├── AGENTS.md              # AI 도구용 문서 안내
+├── docs/                  # PLAN / RESULT 예시, 인터페이스 계약, 제안서
+├── parts/                 # 대분류별 PLAN.md / RESULT.md (A~O)
 ├── backend/               # FastAPI 서버, 게임, AI, 보안 기능
 ├── frontend/              # 게임 웹 UI
 ├── database/              # 스키마, test-data, game-data
@@ -179,22 +202,26 @@ AWS 계정 없이도 로컬에서 게임과 보안 실험을 전부 돌릴 수 �
 
 ## 개발 방식
 
-- `A01`, `E03` 같은 Part 단위로 작업
-- Part마다 `parts/<분류>/<ID>/plan.md`에 구현 순서, 작업 후 `result.md`에 결과 정리
+- A~O 대분류마다 `parts/<대분류>/PLAN.md`, `RESULT.md` 하나씩 두고 기록을 계속 쌓아감
+- 문서 안에서는 `# J01 - 기능명` 같은 제목으로 기능을 나누고, 그 아래 번호 목록으로 작업을 적음
+- RESULT는 실제로 구현하고 확인한 뒤에만 작성
 - 실제 코드는 `parts/`가 아니라 각 소스 폴더에 둠
 
 참고 문서
 
 - [MASTER.md](MASTER.md) : 무엇을 만드는지
-- [PARTS.md](PARTS.md) : 어떤 Part가 있는지
-- [PART_WORKFLOW.md](PART_WORKFLOW.md) : PLAN / RESULT 작성 방법
+- [PARTS.md](PARTS.md) : 대분류별로 누가 무엇을 맡는지
+- [WORKFLOW.md](WORKFLOW.md) : PLAN / RESULT 작성 방법
 - [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) : 파일을 어디에 두는지
 
 ---
 
 ## 로컬 실행
 
-아직 개발 초기라 준비 중. 구현이 진행되면 아래 내용 추가 예정.
+프론트엔드 화면(Mock 데이터)은 GitHub Pages에서 볼 수 있음: https://kcg020529.github.io/detective.game.github.io/
+로컬 실행 방법은 [frontend/README.md](frontend/README.md) 참고.
+
+전체 서비스는 아직 개발 초기라 준비 중. 구현이 진행되면 아래 내용 추가 예정.
 
 - 로컬 실행 방법 (Docker Compose)
 - 테스트 데이터 적재

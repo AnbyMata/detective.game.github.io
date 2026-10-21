@@ -28,4 +28,4 @@ python -m http.server 8000 --bind 127.0.0.1
 ## 현재 상태
 
 - 모든 데이터는 Mock. 로그인·저장·채팅 답변 모두 서버 연결 없음 (J03에서 연결)
-- 진행 기록: `parts/J-frontend/J01`, `parts/J-frontend/J02`
+- 진행 기록: `parts/J-frontend/PLAN.md`, `parts/J-frontend/RESULT.md` (J01, J02)
