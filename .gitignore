@@ -1,0 +1,54 @@
+# 환경변수 (실제 값은 올리지 않음, .env.example만 공유)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# 빌드 결과
+dist/
+build/
+
+# 실행 중 DB / Vector DB 데이터
+*.db
+*.sqlite3
+mariadb_data/
+qdrant_storage/
+
+# 로그
+*.log
+logs/
+
+# 인증서 / 키
+*.pem
+*.key
+
+# Kubernetes / 인프라 비밀값
+*secret*.yaml
+*secret*.yml
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# 에디터 / OS
+.vscode/
+.idea/
+.obsidian/
+*.swp
+.DS_Store
+Thumbs.db
